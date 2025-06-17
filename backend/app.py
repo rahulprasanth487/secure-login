@@ -26,6 +26,11 @@ def login():
     else:
         return jsonify({"message": "Invalid credentials", "status": "error"}), 401
 
+@app.route('/api/currentCode',methods=["GET"])
+def code():
+    # return jsonify({"code": 1}), 200
+    return jsonify({"code":0,"questions":["What is the national bird?", "What is your birthplace?"]}),200 #for multiple page questions
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+
+app.run(debug=True)

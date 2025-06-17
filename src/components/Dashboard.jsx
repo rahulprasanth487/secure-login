@@ -3,11 +3,18 @@ import { useParams } from "react-router-dom";
 import Dashboard_Header from "./Dashboard_Header";
 
 import { Pie, Line } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js';
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    Legend,
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement
+} from "chart.js";
 
-// Register Chart.js modules
 ChartJS.register(ArcElement, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement);
-
 
 export default function Dashboard() {
     const { username } = useParams();
@@ -18,37 +25,19 @@ export default function Dashboard() {
     const [showInsurance, setShowInsurance] = useState(false);
 
     const [modalType, setModalType] = useState(null);
-    const [passwordInput, setPasswordInput] = useState("");
+    const [modalStep, setModalStep] = useState(""); // pin, dob, sport
+    const [inputValue, setInputValue] = useState("");
     const [modalError, setModalError] = useState("");
 
-    const correctPassword = "1234";
+    const [questions, setQuestions] = useState([]); // for code 7
+    const [currentQIndex, setCurrentQIndex] = useState(0);
+    const [answers, setAnswers] = useState([]);
 
-    const handleVerify = () => {
-        if (passwordInput === correctPassword) {
-            if (modalType === "balance") setShowBalance(true);
-            else if (modalType === "credit") setShowCreditCard(true);
-            else if (modalType === "loan") setShowLoan(true);
-            else if (modalType === "insurance") setShowInsurance(true);
-            setModalType(null);
-            setPasswordInput("");
-            setModalError("");
-        } else {
-            setModalError("Incorrect password.");
-        }
+    const correctAnswers = {
+        pin: "1234",
+        dob: "2000-01-01",
+        sport: "cricket"
     };
-
-    const openModal = (type) => {
-        setModalType(type);
-        setPasswordInput("");
-        setModalError("");
-    };
-
-    const closeModal = () => {
-        setModalType(null);
-        setPasswordInput("");
-        setModalError("");
-    };
-
 
     const pieData = {
         labels: ["Shopping", "Fuel", "Subscriptions"],
@@ -57,9 +46,9 @@ export default function Dashboard() {
                 label: "Monthly Expenses",
                 data: [300, 120, 90],
                 backgroundColor: ["#6366f1", "#f97316", "#10b981"],
-                borderWidth: 1,
-            },
-        ],
+                borderWidth: 1
+            }
+        ]
     };
 
     const lineData = {
@@ -70,10 +59,92 @@ export default function Dashboard() {
                 data: [9000, 9500, 8900, 10000, 11000, 12340],
                 fill: false,
                 borderColor: "#4f46e5",
-                tension: 0.4,
-            },
-        ],
+                tension: 0.4
+            }
+        ]
     };
+
+    const handleSecureClick = async (type) => {
+        const res = await fetch("http://localhost:5000/api/currentCode");
+        const data = await res.json();
+
+        const code = data["code"];
+
+        if (code === 0) {
+            showSection(type);
+        } else if (code === 1) {
+            setModalStep("pin");
+            setModalType(type);
+        } else if (code === 2) {
+            setModalStep("dob");
+            setModalType(type);
+        } else if (code === 3) {
+            setModalStep("sport");
+            setModalType(type);
+        } else if (code === 7) {
+            console.log(data)
+            setQuestions(data["questions"] || []);
+            setModalStep("multiq");
+            setModalType(type);
+            setCurrentQIndex(0);
+            setAnswers([]);
+        }
+    };
+
+    const showSection = (type) => {
+        if (type === "balance") setShowBalance(true);
+        else if (type === "credit") setShowCreditCard(true);
+        else if (type === "loan") setShowLoan(true);
+        else if (type === "insurance") setShowInsurance(true);
+    };
+
+    const handleVerify = () => {
+        const expected = correctAnswers[modalStep];
+        if (inputValue.trim().toLowerCase() === expected) {
+            showSection(modalType);
+            closeModal();
+        } else {
+            setModalError("Incorrect input.");
+        }
+    };
+
+    const closeModal = () => {
+        setModalType(null);
+        setInputValue("");
+        setModalError("");
+        setModalStep("");
+    };
+
+    const handleMultiQuestionNext = () => {
+        const newAnswers = [...answers, inputValue.trim().toLowerCase()];
+        setAnswers(newAnswers);
+        setInputValue("");
+        setModalError("");
+
+        if (currentQIndex + 1 < questions.length) {
+            setCurrentQIndex(currentQIndex + 1);
+        } else {
+            // final question answered, validate all
+            validateMultiAnswers(newAnswers);
+        }
+    };
+
+    const validateMultiAnswers = (userAnswers) => {
+        // This should be done securely via backend ideally.
+        const expectedAnswers = ["peacock", "delhi", "math"]; // Example
+
+        const isCorrect = userAnswers.every((ans, i) => ans === expectedAnswers[i]);
+        if (isCorrect) {
+            showSection(modalType);
+            closeModal();
+        } else {
+            setModalError("One or more answers are incorrect.");
+            setCurrentQIndex(0);
+            setAnswers([]);
+            setInputValue("");
+        }
+    };
+
 
     return (
         <>
@@ -81,11 +152,7 @@ export default function Dashboard() {
             <div className="min-h-screen bg-gray-100 p-6">
                 <h1 className="text-2xl font-bold mb-6">Welcome, {username} 👋</h1>
 
-
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* My Cards */}
                     <Tile title="My Cards">
                         <p className="text-sm mb-2">You have 2 cards</p>
                         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-4 mb-3 shadow-md">
@@ -98,75 +165,60 @@ export default function Dashboard() {
                         </div>
                     </Tile>
 
-                    {/* Quick Transfer */}
                     <Tile title="Quick Transfer">
                         <input className="border p-2 w-full mb-2 rounded" type="text" placeholder="Recipient" />
                         <input className="border p-2 w-full mb-2 rounded" type="number" placeholder="Amount" />
                         <button className="bg-blue-600 text-white px-4 py-2 rounded w-full">Send Money</button>
                     </Tile>
 
-
-                    <div className="grid grid-rows-1 md:grid-rows-2 gap-6">
-
-                        {/* Expenses with chart */}
-                        <Tile title="Expenses">
-                            <div className="flex items-center justify-between text-sm mb-2">
-                                <span>Monthly: $510.00</span>
-                                <span className="text-gray-500">Weekly: $105.00</span>
-                            </div>
-                            {/* <div className="flex justify-center">
-                                <svg width="100" height="100" viewBox="0 0 36 36" className="donut">
-                                    <circle className="text-gray-200" strokeWidth="3.8" fill="none" r="15.9155" cx="18" cy="18" />
-                                    <circle className="text-blue-600" strokeWidth="3.8" strokeDasharray="70 30" strokeLinecap="round" fill="none" r="15.9155" cx="18" cy="18" />
-                                </svg>
-                            </div> */}
-                            <p className="text-center text-sm mt-2">Total: $8,490</p>
+                    {/* <Tile title="Expenses">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                            <span>Monthly: $510.00</span>
+                            <span className="text-gray-500">Weekly: $105.00</span>
+                        </div>
+                        <p className="text-center text-sm mt-2">Total: $8,490</p>
+                    </Tile> */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Tile title="Expenses Breakdown">
+                            <Pie data={pieData} />
                         </Tile>
 
-                        {/* Balance */}
+                        <Tile title="Balance Trend">
+                            <Line data={lineData} />
+                        </Tile>
+                    </div>
+
+                    <div className="flex flex-col gap-6">
+
                         <Tile title="Account Balance">
                             <p className="text-2xl font-bold text-green-600">
                                 {showBalance ? "$12,340.50" : "xxxxxxxx"}
                             </p>
                             <ToggleButton
                                 isVisible={showBalance}
-                                onShow={() => openModal("balance")}
+                                onShow={() => handleSecureClick("balance")}
                                 onHide={() => setShowBalance(false)}
                                 label="Balance"
                             />
                         </Tile>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Expenses Pie Chart */}
-                        <Tile title="Expenses Breakdown">
-                            <Pie data={pieData} />
+
+                        <Tile title="My Transactions">
+                            <ul className="text-sm space-y-2">
+                                <li className="flex justify-between">
+                                    <span>Investment</span><span className="text-red-500">- $465</span>
+                                </li>
+                                <li className="flex justify-between">
+                                    <span>Shopping</span><span className="text-red-400">- $58.85</span>
+                                </li>
+                                <li className="flex justify-between">
+                                    <span>Food</span><span className="text-green-600">- $25.00</span>
+                                </li>
+                            </ul>
                         </Tile>
 
-                        {/* Balance Trend Line Chart */}
-                        <Tile title="Balance Trend">
-                            <Line data={lineData} />
-                        </Tile>
                     </div>
 
-                    {/* My Transactions */}
-                    <Tile title="My Transactions">
-                        <ul className="text-sm space-y-2">
-                            <li className="flex justify-between">
-                                <span>Investment</span><span className="text-red-500">- $465</span>
-                            </li>
-                            <li className="flex justify-between">
-                                <span>Shopping</span><span className="text-red-400">- $58.85</span>
-                            </li>
-                            <li className="flex justify-between">
-                                <span>Food</span><span className="text-green-600">- $25.00</span>
-                            </li>
-                        </ul>
-                    </Tile>
-
-
-
-                    {/* Credit Card */}
                     <Tile title="Credit Card">
                         {showCreditCard ? (
                             <>
@@ -177,14 +229,13 @@ export default function Dashboard() {
                         ) : (
                             <>
                                 <p>•••••••••••••</p>
-                                <button onClick={() => openModal("credit")} className="text-blue-600 text-sm mt-2">
+                                <button onClick={() => handleSecureClick("credit")} className="text-blue-600 text-sm mt-2">
                                     View Credit Details
                                 </button>
                             </>
                         )}
                     </Tile>
 
-                    {/* Loan Summary */}
                     <Tile title="Loan Summary">
                         {showLoan ? (
                             <>
@@ -194,21 +245,20 @@ export default function Dashboard() {
                         ) : (
                             <>
                                 <p>••••••••••</p>
-                                <button onClick={() => openModal("loan")} className="text-blue-600 text-sm mt-2">
+                                <button onClick={() => handleSecureClick("loan")} className="text-blue-600 text-sm mt-2">
                                     View Loan Details
                                 </button>
                             </>
                         )}
                     </Tile>
 
-                    {/* Insurance */}
                     <Tile title="Insurance">
                         {showInsurance ? (
                             <p>Health Insurance - Active<br />Life Insurance - Expiring Soon</p>
                         ) : (
                             <>
                                 <p>••••••••••</p>
-                                <button onClick={() => openModal("insurance")} className="text-blue-600 text-sm mt-2">
+                                <button onClick={() => handleSecureClick("insurance")} className="text-blue-600 text-sm mt-2">
                                     View Insurance
                                 </button>
                             </>
@@ -216,16 +266,48 @@ export default function Dashboard() {
                     </Tile>
                 </div>
 
-                {/* Modal */}
-                {modalType && (
+
+
+                {modalStep === "multiq" && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded shadow-md w-80">
-                            <h2 className="text-xl font-semibold mb-4">Verify Password</h2>
+                            <h2 className="text-xl font-semibold mb-4">
+                                Security Question {currentQIndex + 1} of {questions.length}
+                            </h2>
+                            <p className="mb-2">{questions[currentQIndex]}</p>
                             <input
-                                type="password"
-                                value={passwordInput}
-                                onChange={(e) => setPasswordInput(e.target.value)}
-                                placeholder="Enter your password"
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="Type your answer..."
+                                className="border p-2 w-full mb-3"
+                            />
+                            {modalError && <p className="text-red-500 text-sm mb-2">{modalError}</p>}
+                            <div className="flex justify-between">
+                                <button onClick={handleMultiQuestionNext} className="bg-green-600 text-white px-4 py-2 rounded">
+                                    {currentQIndex + 1 === questions.length ? "Submit" : "Next"}
+                                </button>
+                                <button onClick={closeModal} className="text-gray-600 px-4 py-2 rounded">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* Modal */}
+                {modalType && modalStep != "multiq" && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded shadow-md w-80">
+                            <h2 className="text-xl font-semibold mb-4">
+                                {modalStep === "pin" && "Enter PIN"}
+                                {modalStep === "dob" && "Enter Date of Birth"}
+                                {modalStep === "sport" && "Your Favourite Sport"}
+                            </h2>
+                            <input
+                                type={modalStep === "dob" ? "date" : "text"}
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="Type here..."
                                 className="border p-2 w-full mb-3"
                             />
                             {modalError && <p className="text-red-500 text-sm mb-2">{modalError}</p>}
@@ -243,7 +325,7 @@ export default function Dashboard() {
 
 function Tile({ title, children }) {
     return (
-        <div className="bg-white shadow-sm rounded-xl p-6 flex flex-col justify-start ">
+        <div className="bg-white shadow-sm rounded-xl p-6 flex flex-col justify-start">
             <h2 className="text-lg font-semibold mb-3">{title}</h2>
             {children}
         </div>
