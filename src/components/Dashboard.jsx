@@ -33,6 +33,9 @@ export default function Dashboard() {
     const [currentQIndex, setCurrentQIndex] = useState(0);
     const [answers, setAnswers] = useState([]);
 
+    const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
+
+
     const correctAnswers = {
         pin: "1234",
         dob: "2000-01-01",
@@ -90,6 +93,20 @@ export default function Dashboard() {
             setAnswers([]);
         }
     };
+
+    React.useEffect(() => {
+        setTimeout(() => {
+            setShowTimeoutPopup(true);
+        }, 120000);
+
+        // Cleanup function to clear the timeout if the component unmounts
+        return () => {
+            setShowTimeoutPopup(false);
+        };
+
+
+    }, []);
+
 
     const showSection = (type) => {
         if (type === "balance") setShowBalance(true);
@@ -294,6 +311,21 @@ export default function Dashboard() {
                         </div>
                     </div>
                 )}
+
+                {showTimeoutPopup && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded shadow-md w-80 text-center">
+                            <h2 className="text-xl font-semibold mb-2">Heads up! 👋</h2>
+                            <p className="text-gray-700 mb-4">Your ip is leaked Need any help?</p>
+                            <button onClick={() => setShowTimeoutPopup(false)} className="bg-blue-600 text-white px-4 py-2 rounded">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+
+
                 {/* Modal */}
                 {modalType && modalStep != "multiq" && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
