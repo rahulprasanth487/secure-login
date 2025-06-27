@@ -1,0 +1,63 @@
+Inputs:
+UPI ID
+Transaction amount
+
+1. User Interface (Input Stage)
+- The user accesses the application in Guest Mode on their mobile device.
+- The interface prompts the user to:
+    • Enter their UPI ID (Unified Payments Interface identifier).
+    • Enter the transaction amount they wish to send.
+- Once both fields are filled, the details are sent to the Authorization module for verification.
+
+2. Authorization Stage (Multi-Factor Verification)
+- The Authorization module initiates a layered security process using multiple verification factors:
+
+    a. Face Scanner (Biometric Verification)
+        • The system activates the device camera to scan the user's face.
+        • It generates a facial hash (a unique digital representation of the face).
+        • The facial hash is compared with the hash already stored for the provided UPI ID and that will be updated on each transaction if it is happening in own device.
+        • A match score is calculated based on the similarity.
+
+    b. Location Verification (Geolocation Check)
+        • The system captures the user's current location using device GPS.
+        • The location is converted into a hashed value for privacy.
+        • This hash is compared with hashes of previous transaction locations for the same UPI ID.
+        • A location match score is generated.
+
+3. Match Score Evaluation (Decision Point)
+- The system evaluates the match scores from both face and location checks.
+- Three possible outcomes:
+    • If the combined (or individual) match score is above a secure threshold:
+        - Authorization is successful.
+        - The transaction proceeds to the Money Transfer stage.
+    • If the score is below a minimum threshold:
+        - The payment is immediately rejected for security reasons.
+    • If the score falls within an intermediate range (not clearly pass or fail):
+        - The system triggers a secondary verification step for added security.
+
+4. Secondary Verification (Triggered by Intermediate Score)
+- The user is prompted to verify their debit card number linked to the UPI ID.
+    • If the debit card number is verified successfully:
+        - The user is asked to scan the physical debit card for confirmation.
+        - If the scan is successful, the transaction proceeds.
+    • If the debit card verification fails:
+        - The system moves to an optional fallback verification step or payment can be rejected.
+
+5. Optional Block: Typing Rhythm Verification (Behavioral Biometrics)
+- As a last resort, the user is asked to type a specific sentence (similar to a CAPTCHA).
+- The system analyzes:
+    • Typing speed (how fast the user types).
+    • Dwell time (how long each key is pressed).
+    • Flight time (interval between key presses).
+- If the typing rhythm matches the user's historical pattern or meets security criteria:
+    • The transaction proceeds.
+- If the typing rhythm cannot be verified:
+    • The payment is rejected.
+
+6. Withdrawal Request Flow (Post-Transaction)
+- Once the money is transferred, the recipient receives a withdrawal request.
+- The recipient must approve the withdrawal within 24 hours to complete the process.
+    • If approved within the time window:
+        - The money is withdrawn and the transaction is finalized.
+    • If not approved or rejected:
+        - The withdrawal request is canceled.
