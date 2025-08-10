@@ -1,0 +1,88 @@
+PROBLEM STATEMENT:
+Problem Statement – Secure AI in Banking
+Banks are rapidly adopting LLM-powered assistants for customer service, fraud detection, and process automation.
+However, these systems face critical challenges:
+
+Prompt-based attacks (jailbreaks, phishing, adversarial queries) can bypass safeguards.
+
+Model poisoning in federated training can inject bias or backdoors.
+
+Inconsistent moderation across branches weakens fraud prevention.
+
+Data privacy regulations prevent sharing raw customer data for model improvement.
+
+Lack of verifiable audit trails makes regulatory compliance difficult.
+
+Need: A privacy-preserving federated AI security framework that detects malicious prompts locally, leverages peer-reviewed classification, uses trust-weighted aggregation to resist attacks, and provides cryptographically verifiable audit logs.
+
+
+
+Novelties:
+List of Patentable Novelties
+Behavioral Signature-Conditioned LoRA Adapters
+
+Trust-Weighted Federated Averaging (TW-FedAvg)
+
+Prompt-Class Anchoring Layer (PCAL)
+
+Autonomous Quarantine and Rollback Protocol
+
+Cryptographic Audit Trail with Merkle Proofs
+
+Privacy-Preserving Distributed Classification
+
+Behavioral Context Hash Integration
+
+Federated LLM Security Architecture
+
+Parameter-Efficient Malicious Prompt Detection
+
+Cross-Client Trust Scoring System
+
+
+Usecases:
+Here are the banking use cases that benefit specifically from the federated LLM security framework, summarized in concise points:
+
+Customer Data Privacy Protection
+
+Protects customer PII and sensitive financial data across all bank operations.
+
+Enables personalized security improvements while ensuring regulatory compliance.
+
+Regulatory Compliance Monitoring
+
+Automatically tracks and records AI decisions for regulatory audits.
+
+Provides cryptographic proof of compliance without exposing private data.
+
+Anti-Money Laundering (AML) Compliance
+
+Detects money laundering patterns across institutions without sharing customer data.
+
+Maintains compliance with global AML regulations securely.
+
+Real-time Transaction Monitoring
+
+Monitors millions of daily transactions for suspicious or fraudulent activity.
+
+Adapts instantly to emerging threats and reduces false positives.
+
+Credit Risk Assessment
+
+Ensures fair, unbiased, and explainable credit decisions using personalized risk profiles.
+
+Improves accuracy and compliance with fair lending regulations.
+
+Fraud Detection Enhancement
+
+Increases fraud detection accuracy and reduces false positives by aggregating insights across the bank, without transferring sensitive transaction data.
+
+Cross-Border Transaction Security
+
+Shares threat intelligence securely for international operations, while maintaining data sovereignty and regulatory compliance.
+
+Customer Service Chatbot Security
+
+Protects AI customer chatbots against jailbreaking attempts.
+
+Maintains safe, secure, and compliant conversations.
